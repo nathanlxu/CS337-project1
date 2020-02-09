@@ -8,10 +8,10 @@ official_tweets = []
 
 tweets = []
 
-def getTweets():
+def get_tweets(year):
 
 	#change this to read desired file
-	filename = 'gg2013.json'
+	filename = 'gg jsons/gg%s.json' % str(year)
 
 
 	text = []

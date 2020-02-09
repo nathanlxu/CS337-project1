@@ -30,7 +30,7 @@ def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    tweets = getTweets()
+    tweets = get_tweets(year)
     cnt = Counter()
     host_tweets = []
     hosts = []
@@ -98,16 +98,19 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    tweets = getTweets()
+    tweets = get_tweets(year)
+    print("Year:", year)
+    cutoff_year = 2016 # year when category names underwent minor changes
     awards = []
-    if int(year) < 2016:
+    if int(year) < cutoff_year:
         com = ' - comedy or musical '
     else:
         com = ' - musical or comedy '
     filtered = []
-    
+    ct = 0 # test count
     for tweet in tweets:
         if 'Best' in tweet or 'best' in tweet:
+            ct += 1
             current_word_list = re.findall(r"['a-zA-Z]+\b", ' '.join(tweet))
             filtered.append(' '.join(current_word_list))
 
@@ -136,24 +139,24 @@ def get_awards(year):
                 award = str(s.lower())
                 if ' musical' in award and 'comedy' not in award:
                     award = award.replace(' musical', com)
-                if int(year) < 2016:
-                    if ' musical or comedy ' in award:
-                        award = award.replace(' musical or comedy ', com)
+                if int(year) < cutoff_year:
+                    if ' - musical or comedy ' in award:
+                        award = award.replace(' - musical or comedy ', com)
                 else:
-                    if ' comedy or musical ' in award:
-                        award = award.replace(' comedy or musical ', com)
+                    if ' - comedy or musical ' in award:
+                        award = award.replace(' - comedy or musical ', com)
                 awards.append(process(award.strip(), year))
         elif comedy:
             for s in comedy.groups():
                 award = str(s.lower())
                 if ' comedy' in award and 'musical' not in award:
                     award = award.strip().replace(' comedy', com)
-                if int(year) < 2016:
-                    if ' musical or comedy ' in award:
-                        award = award.replace(' musical or comedy ', com)
+                if int(year) < cutoff_year:
+                    if ' - musical or comedy ' in award:
+                        award = award.replace(' - musical or comedy ', com)
                 else:
-                    if ' comedy or musical ' in award:
-                        award = award.replace(' comedy or musical ', com)
+                    if ' - comedy or musical ' in award:
+                        award = award.replace(' - comedy or musical ', com)
                 awards.append(process(award.strip(), year))
         elif mopic:
             for s in mopic.groups():
@@ -169,7 +172,8 @@ def get_awards(year):
                 awards.append(process(award.strip(), year))
 
     awards = [award[0] for award in nltk.FreqDist(awards).most_common(len(OFFICIAL_AWARDS_1315)) if award[0] is not None]
-
+    print("COUNT OF TWEETS WITH 'BEST':", ct)
+    print(awards)
     return awards
 
 def get_nominees(year):
@@ -208,7 +212,7 @@ def pre_ceremony():
     plain text file. It is the first thing the TA will run when grading.
     Do NOT change the name of this function or what it returns.'''
     # Your code here
-    tweets = getTweets()
+    # tweets = get_tweets()
     print("Pre-ceremony processing complete.")
     return
 

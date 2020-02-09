@@ -7,9 +7,9 @@ def award_keywords():
 
     nltk.download('stopwords')
     stopwords = nltk.corpus.stopwords.words('english')
-    stopwordsList = stopwords + ['award', 'best', 'motion picture', 'motion', 'picture', 'mopic' 'film', 'performance', 'by', 'an', 'in', 'a', '-', 'or', ',', 'made', 'mini-series', 'role']
+    stopwordsList = stopwords + ['award', 'best', 'motion picture', 'motion', 'picture', 'mopic' 'film', 'performance', 'by', 'an', 'in', 'a', '-', 'or', ',', 'made', 'mini-series', 'role', 'original']
 
-    award_mapping = []
+    award_mapping = {}
 
     for award in OFFICIAL_AWARDS_1315:
         key_words = []
@@ -17,7 +17,7 @@ def award_keywords():
         for words in award_tokens:
             if words not in stopwordsList:
                 key_words.append(words)
-        award_mapping.append([award, key_words])
+        award_mapping[award] = key_words
 
     print(award_mapping)
     return award_mapping
