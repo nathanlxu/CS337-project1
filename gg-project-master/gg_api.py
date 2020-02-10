@@ -1,8 +1,9 @@
 '''Version 0.35'''
 import sys
 import nltk
+import spacy
 import itertools
-from gt import *
+from gg_utils import *
 from collections import Counter
 from collections import OrderedDict
 import re
@@ -13,7 +14,7 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
-stopwordsList = stopwords + ['The Golden Globes', 'GoldenGlobes', 'Golden', 'Globes', 'Golden Globes', 'RT', 'VanityFair', 'golden', 'globes' '@', 'I', 'we', 'http', '://', '/', 'com', 'Best', 'best', 'Looking','Nice', 'Most', 'Pop', 'Hip Hop', 'Rap', 'We', 'Love', 'Awkward','Piece', 'While', 'Boo', 'Yay', 'Congrats', 'And', 'The', 'Gq', 'Refinery29', 'USWeekly', 'TMZ', 'Hollywood', 'Watching', 'Hooray', 'That', 'Yeah', 'Can', 'So', 'And', 'But', 'What', 'NShowBiz', 'She', 'Mejor', 'Did', 'Vanity', 'Fair', 'Drama', 'MotionPicture', 'News', 'Take', 'Before', 'Director', 'Award', 'Movie Award', 'Music Award', 'Best Director', 'Best Actor', 'Best Actress', 'Am', 'Golden Globe', 'Globe', 'Awards', 'It']
+stopwordsList = stopwords + ['The Golden Globes', 'the Golden Globes', 'GoldenGlobes', 'Golden', 'Globes', 'Golden Globes', 'RT', 'VanityFair', 'golden', 'globes' '@', 'I', 'we', 'http', '://', '/', 'com', 'Best', 'best', 'Looking','Nice', 'Most', 'Pop', 'Hip Hop', 'Rap', 'We', 'Love', 'Awkward','Piece', 'While', 'Boo', 'Yay', 'Congrats', 'And', 'The', 'Gq', 'Refinery29', 'USWeekly', 'TMZ', 'Hollywood', 'Watching', 'Hooray', 'That', 'Yeah', 'Can', 'So', 'And', 'But', 'What', 'NShowBiz', 'She', 'Mejor', 'Did', 'Vanity', 'Fair', 'Drama', 'MotionPicture', 'News', 'Take', 'Before', 'Director', 'Award', 'Movie Award', 'Music Award', 'Best Director', 'Best Actor', 'Best Actress', 'Am', 'Golden Globe', 'Globe', 'Awards', 'It']
 
 def get_names(text):
     person_list = []
@@ -114,6 +115,8 @@ def get_awards(year):
             current_word_list = re.findall(r"['a-zA-Z]+\b", ' '.join(tweet))
             filtered.append(' '.join(current_word_list))
 
+    # print("LEN OF FILTERED:", len(filtered)) # test count
+
     rbd = re.compile(r"(Best\s[a-zA-z\s-]*Drama)")
     rbm = re.compile(r"(Best\s[a-zA-z\s-]*Musical)")
     rbc = re.compile(r"(Best\s[a-zA-z\s-]*Comedy)")
@@ -176,24 +179,103 @@ def get_awards(year):
     print(awards)
     return awards
 
+def filter_tweets(tweets, keywords):
+    return [tweet for tweet in tweets if any(keyword in tweet for keyword in keywords)]
+
+def tag_tweets(year):
+    if int(year) < 2016:
+        awards_list = OFFICIAL_AWARDS_1315
+    else:
+        awards_list = OFFICIAL_AWARDS_1819
+
+    nltk.download('stopwords', quiet=True)
+    stopwords = nltk.corpus.stopwords.words('english')
+    stopwords_list = stopwords + ['award', 'best', 'motion picture', 'motion', 'picture', 'mopic' 'film', 'performance',
+                                  'by', 'an', 'in', 'a', '-', 'or', ',', 'made', 'mini-series', 'role', 'original']
+    # 1. tag tweets with award category - creates dict of list of tweets, with award titles as keys
+    tweets = get_tweets(year, tokenize=False)
+    award_keywords = get_award_keywords(awards_list, stopwords_list)
+    filtered_tweets = filter_tweets(tweets, ['Best', 'best', 'Cecil', 'cecil'])
+    #relevant_tweets = dict.fromkeys(awards_list)
+    relevant_tweets = {}
+
+    for tweet in filtered_tweets:
+        for award in award_keywords:
+            if all(kw in tweet for kw in award_keywords[award]):
+                if award not in relevant_tweets:
+                    relevant_tweets[award] = [tweet]
+                else:
+                    relevant_tweets[award].append(tweet)
+    # print(len(relevant_tweets), relevant_tweets.keys())
+    return relevant_tweets
+
 def get_nominees(year):
     '''Nominees is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change
     the name of this function or what it returns.'''
-    # Your code here
+    return {} ###
+    relevant_tweets = tag_tweets(year)
+    # 2. identify named entities in each tag tweet - looks through dict of list of tweets and identifies
+    #    the named entities in each tweet
+    nlp = spacy.load('en_core_web_sm')
+    named_entities = {}
+    for award in relevant_tweets:
+        for tweet in relevant_tweets[award]:
+            doc = nlp(tweet)
+            for ent in doc.ents:
+                if ent.text not in stopwordsList and '#' not in ent.text:
+                    if award not in named_entities:
+                        named_entities[award] = [ent.text]
+                    else:
+                        named_entities[award].append(ent.text)
+    # print(len(named_entities), named_entities)
+
+    # 3. count up each unique named entity in each category
+    nominee_counts = {}
+    for award, named_entities_list in named_entities.items():
+        z = zip(Counter(named_entities_list).keys(), Counter(named_entities_list).values())
+        sorted_named_entities = dict(sorted(z, key=lambda x: x[1], reverse=True))
+        nominee_counts[award] = sorted_named_entities
+    # print(nominee_counts)
+    # 4. get the named entities associated with the top 5 counts (5 nominees are selected per category in ggs)
     nominees = {}
-    for element in OFFICIAL_AWARDS_1315:
-        nominees[element] = ""
+    for award in nominee_counts:
+        nominees[award] = max(nominee_counts[award], key=nominee_counts[award].get)
+    # print("WINNERS:", nominees)
     return nominees
 
 def get_winner(year):
     '''Winners is a dictionary with the hard coded award
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
-    # Your code here
+    relevant_tweets = tag_tweets(year)
+    # 2. identify named entities in each tag tweet - looks through dict of list of tweets and identifies
+    #    the named entities in each tweet
+    nlp = spacy.load('en_core_web_sm')
+    named_entities = {}
+    for award in relevant_tweets:
+        for tweet in relevant_tweets[award]:
+            doc = nlp(tweet)
+            for ent in doc.ents:
+                if ent.text not in stopwordsList and '#' not in ent.text:
+                    if award not in named_entities:
+                        named_entities[award] = [ent.text]
+                    else:
+                        named_entities[award].append(ent.text)
+    # print(len(named_entities), named_entities)
+
+    # 3. count up each unique named entity in each category
+    nominee_counts = {}
+    for award, named_entities_list in named_entities.items():
+        z = zip(Counter(named_entities_list).keys(), Counter(named_entities_list).values())
+        sorted_named_entities = dict(sorted(z, key=lambda x: x[1], reverse=True))
+        nominee_counts[award] = sorted_named_entities
+    # print(nominee_counts)
+    # 4. get the named entities associated with the top 5 counts (5 nominees are selected per category in ggs)
     winners = {}
-    for element in OFFICIAL_AWARDS_1315:
-        winners[element] = ""
+    for award in nominee_counts:
+        winners[award] = max(nominee_counts[award], key=nominee_counts[award].get)
+    # print("WINNERS:", winners)
     return winners
 
 def get_presenters(year):
@@ -227,12 +309,20 @@ def main():
         year = input("Award year: ")
         print("Options:\n1. Get Hosts\n2. Get Awards\n3. Get Nominees\n4. Get Winners\n5. Get Presenters\nx. Exit Program")
         entry = input("Enter option: ")
-        if (entry == "1"):
+        if entry == '1':
             hosts = get_hosts(year)
-        elif (entry == "2"):
+            print(hosts)
+        elif entry == '2':
             awards = get_awards(year)
+            print(awards)
             #other methods not currently supported, though autograder will run them anyway
-        elif (entry == "x"):
+        elif entry == '3':
+            nominees = get_nominees(year)
+            print(nominees)
+        elif entry == '4':
+            winners = get_winner(year)
+            print(winners)
+        elif entry == "x":
             sys.exit()
         else:
             print ("Invalid input")
