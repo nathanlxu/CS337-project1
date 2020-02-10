@@ -11,7 +11,7 @@ tweets = []
 def get_tweets(year):
 
 	#change this to read desired file
-	filename = 'gg jsons/gg%s.json' % str(year)
+	filename = 'gg%s.json' % str(year)
 
 
 	text = []
@@ -27,7 +27,7 @@ def get_tweets(year):
 
 	for item in jsonData:
 		t = item.get("text")
-		text.append(t)
+		text.append(t.lower())
 
 
 	tokenizer = RegexpTokenizer(r'\w+')
