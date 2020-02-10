@@ -5,6 +5,7 @@ import spacy
 import itertools
 from gg_utils import *
 from collections import Counter
+from random import sample
 from collections import OrderedDict
 import re
 from difflib import SequenceMatcher
@@ -14,7 +15,8 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
-stopwordsList = stopwords + ['The Golden Globes', 'the Golden Globes', 'GoldenGlobes', 'Golden', 'Globes', 'Golden Globes', 'RT', 'VanityFair', 'golden', 'globes' '@', 'I', 'we', 'http', '://', '/', 'com', 'Best', 'best', 'Looking','Nice', 'Most', 'Pop', 'Hip Hop', 'Rap', 'We', 'Love', 'Awkward','Piece', 'While', 'Boo', 'Yay', 'Congrats', 'And', 'The', 'Gq', 'Refinery29', 'USWeekly', 'TMZ', 'Hollywood', 'Watching', 'Hooray', 'That', 'Yeah', 'Can', 'So', 'And', 'But', 'What', 'NShowBiz', 'She', 'Mejor', 'Did', 'Vanity', 'Fair', 'Drama', 'MotionPicture', 'News', 'Take', 'Before', 'Director', 'Award', 'Movie Award', 'Music Award', 'Best Director', 'Best Actor', 'Best Actress', 'Am', 'Golden Globe', 'Globe', 'Awards', 'It']
+stopwordsList = stopwords + ['The Golden Globes', 'the Golden Globes', 'the Golden Globe', 'GoldenGlobes', 'Golden', 'Globes', 'Golden Globes', 'RT', 'VanityFair', 'golden', 'globes' '@', 'I', 'we', 'http', '://', '/', 'com', 'Best', 'best', 'Looking','Nice', 'Most', 'Pop', 'Hip Hop', 'Rap', 'We', 'Love', 'Awkward','Piece', 'While', 'Boo', 'Yay', 'Congrats', 'And', 'The', 'Gq', 'Refinery29', 'USWeekly', 'TMZ', 'Hollywood', 'Watching', 'Hooray', 'That', 'Yeah', 'Can', 'So', 'And', 'But', 'What', 'NShowBiz', 'She', 'Mejor', 'Did', 'Vanity', 'Fair', 'Drama', 'MotionPicture', 'News', 'Take', 'Before', 'Director', 'Award', 'Movie Award', 'Music Award', 'Best Director', 'Best Actor', 'Best Actress', 'Am', 'Golden Globe', 'Globe', 'Awards', 'It', 'first','this year']
+MAX_LENGTH = 20000 # constant used to take random sampling of tweets to shorten processing time
 
 def get_names(text):
     person_list = []
@@ -195,11 +197,18 @@ def tag_tweets(year):
     # 1. tag tweets with award category - creates dict of list of tweets, with award titles as keys
     tweets = get_tweets(year, tokenize=False)
     award_keywords = get_award_keywords(awards_list, stopwords_list)
+
+    print("GOT TWEETS! NOW FILTERING...")
     filtered_tweets = filter_tweets(tweets, ['Best', 'best', 'Cecil', 'cecil'])
+    if len(filtered_tweets) > MAX_LENGTH:
+        sampled_tweets = sample(filtered_tweets, MAX_LENGTH)
+    else:
+        sampled_tweets = filtered_tweets
+    print("FILTERED AND SAMPLED! TWEETS IS OF LENGTH", len(sampled_tweets))
     #relevant_tweets = dict.fromkeys(awards_list)
     relevant_tweets = {}
 
-    for tweet in filtered_tweets:
+    for tweet in sampled_tweets:
         for award in award_keywords:
             if all(kw in tweet for kw in award_keywords[award]):
                 if award not in relevant_tweets:
@@ -209,11 +218,7 @@ def tag_tweets(year):
     # print(len(relevant_tweets), relevant_tweets.keys())
     return relevant_tweets
 
-def get_nominees(year):
-    '''Nominees is a dictionary with the hard coded award
-    names as keys, and each entry a list of strings. Do NOT change
-    the name of this function or what it returns.'''
-    return {} ###
+def get_nominee_counts(year):
     relevant_tweets = tag_tweets(year)
     # 2. identify named entities in each tag tweet - looks through dict of list of tweets and identifies
     #    the named entities in each tweet
@@ -222,7 +227,13 @@ def get_nominees(year):
     for award in relevant_tweets:
         for tweet in relevant_tweets[award]:
             doc = nlp(tweet)
-            for ent in doc.ents:
+            # if award is given to a person, filter out the named entities not are not people
+            # if 'actor' or 'actress' in award:
+            #     ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
+            # else:
+            #     ents_list = doc.ents # [ent for ent in doc.ents if ent.label_ != 'PERSON']
+            ents_list = doc.ents
+            for ent in ents_list:
                 if ent.text not in stopwordsList and '#' not in ent.text:
                     if award not in named_entities:
                         named_entities[award] = [ent.text]
@@ -236,42 +247,24 @@ def get_nominees(year):
         z = zip(Counter(named_entities_list).keys(), Counter(named_entities_list).values())
         sorted_named_entities = dict(sorted(z, key=lambda x: x[1], reverse=True))
         nominee_counts[award] = sorted_named_entities
-    # print(nominee_counts)
-    # 4. get the named entities associated with the top 5 counts (5 nominees are selected per category in ggs)
-    nominees = {}
-    for award in nominee_counts:
-        nominees[award] = max(nominee_counts[award], key=nominee_counts[award].get)
-    # print("WINNERS:", nominees)
-    return nominees
+
+    return nominee_counts
+
+def get_nominees(year):
+    '''Nominees is a dictionary with the hard coded award
+    names as keys, and each entry a list of strings. Do NOT change
+    the name of this function or what it returns.'''
+    print(get_nominee_counts(year))
+    return {}
 
 def get_winner(year):
     '''Winners is a dictionary with the hard coded award
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
-    relevant_tweets = tag_tweets(year)
-    # 2. identify named entities in each tag tweet - looks through dict of list of tweets and identifies
-    #    the named entities in each tweet
-    nlp = spacy.load('en_core_web_sm')
-    named_entities = {}
-    for award in relevant_tweets:
-        for tweet in relevant_tweets[award]:
-            doc = nlp(tweet)
-            for ent in doc.ents:
-                if ent.text not in stopwordsList and '#' not in ent.text:
-                    if award not in named_entities:
-                        named_entities[award] = [ent.text]
-                    else:
-                        named_entities[award].append(ent.text)
-    # print(len(named_entities), named_entities)
-
-    # 3. count up each unique named entity in each category
-    nominee_counts = {}
-    for award, named_entities_list in named_entities.items():
-        z = zip(Counter(named_entities_list).keys(), Counter(named_entities_list).values())
-        sorted_named_entities = dict(sorted(z, key=lambda x: x[1], reverse=True))
-        nominee_counts[award] = sorted_named_entities
+    print("GETTING WINNERS...")
     # print(nominee_counts)
     # 4. get the named entities associated with the top 5 counts (5 nominees are selected per category in ggs)
+    nominee_counts = get_nominee_counts(year)
     winners = {}
     for award in nominee_counts:
         winners[award] = max(nominee_counts[award], key=nominee_counts[award].get)
