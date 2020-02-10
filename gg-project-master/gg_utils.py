@@ -10,7 +10,7 @@ tweets = []
 
 def get_tweets(year, tokenize=True):
 	#change this to read desired file
-	filename = 'gg jsons/gg%s.json' % str(year)
+	filename = 'gg%s.json' % str(year)
 	text = []
 	try:
 		#the gg2013 and 2015 format is one giant json file
@@ -19,8 +19,9 @@ def get_tweets(year, tokenize=True):
 	except:
 		#gg2020 is one json object per line
 		jsonData = []
-		for line in open(filename, 'r'):
-			jsonData.append(json.loads(line))
+		with open(filename, encoding="utf-8") as f:
+			for line in f:
+				jsonData.append(json.loads(line))
 
 	for item in jsonData:
 		t = item.get("text")
@@ -50,4 +51,5 @@ def get_award_keywords(award_titles, stopwords):
 
 	return award_mapping
 
+print(get_tweets(2020))
 # print(get_tweets(2013, tokenize=False)[:3])
