@@ -13,7 +13,6 @@ def get_tweets(year, tokenize=True):
     # change this to read desired file
     filename = 'gg jsons/gg%s.json' % str(year)
     text = []
-    print("GETTING TWEETS")
     try:
         # the gg2013 and 2015 format is one giant json file
         with open(filename) as json_file:
@@ -21,8 +20,9 @@ def get_tweets(year, tokenize=True):
     except:
         # gg2020 is one json object per line
         jsonData = []
-        for line in open(filename, 'r'):
-            jsonData.append(json.loads(line))
+        with open(filename, encoding="utf-8") as f:
+            for line in f:
+                jsonData.append(json.loads(line))
 
     for item in jsonData:
         t = item.get("text")
