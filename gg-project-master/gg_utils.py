@@ -8,8 +8,18 @@ from nltk.tokenize import word_tokenize
 
 official_tweets = []
 tweets = []
-MAX_LENGTH = 5000
+MAX_LENGTH = 10000
+sub_samples = 10
 
+def get_sample(tweets, max_len):
+    print("CREATING SAMPLE")
+    sample = []
+    step_size = int(len(tweets)/sub_samples)
+    sub_sample_size = int(max_len/sub_samples)
+    for i in range(0, len(tweets), step_size):
+        sample += tweets[i:i+sub_sample_size]
+    print("CREATED SAMPLE OF LENGTH", len(sample))
+    return sample
 
 def get_tweets(year, tokenize=True):
     # change this to read desired file
@@ -31,8 +41,9 @@ def get_tweets(year, tokenize=True):
         text.append(t)
 
     print("GOT DATA OF LENGTH", len(text))
-    if len(text) > MAX_LENGTH:
-        sampled_text = sample(text, MAX_LENGTH)
+    # if len(tweets) / sub_samples > MAX_LENGTH:
+    if len(text) / sub_samples > MAX_LENGTH:
+        sampled_text = get_sample(text, MAX_LENGTH)
     else:
         sampled_text = text
 
@@ -72,7 +83,6 @@ def partition(pred, iterable):
             falses.append(item)
     return trues, falses
 
-def filter_tweets(tweets, keywords):
-    return [tweet for tweet in tweets if any(keyword in tweet for keyword in keywords)]
-
-# print(get_tweets(2013, tokenize=False)[:3])
+def filter_tweets(tweets, keywords, stopwords):
+    return [tweet for tweet in tweets if any(keyword in tweet for keyword in keywords)
+            and not any(stopword in tweet for stopword in stopwords)]

@@ -16,11 +16,24 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
 stopwordsList = stopwords + ['The Golden Globes', 'the Golden Globes', 'the Golden Globe', 'GoldenGlobes', 'Golden', 'Globes', 'Golden Globes', 'RT', 'VanityFair', 'golden', 'globes' '@', 'I', 'we', 'http', '://', '/', 'com', 'Best', 'best', 'Looking','Nice', 'Most', 'Pop', 'Hip Hop', 'Rap', 'We', 'Love', 'Awkward','Piece', 'While', 'Boo', 'Yay', 'Congrats', 'And', 'The', 'Gq', 'Refinery29', 'USWeekly', 'TMZ', 'Hollywood', 'Watching', 'Hooray', 'That', 'Yeah', 'Can', 'So', 'And', 'But', 'What', 'NShowBiz', 'She', 'Mejor', 'Did', 'Vanity', 'Fair', 'Drama', 'MotionPicture', 'News', 'Take', 'Before', 'Director', 'Award', 'Movie Award', 'Music Award', 'Best Director', 'Best Actor', 'Best Actress', 'Am', 'Golden Globe', 'Globe', 'Awards', 'It', 'first','this year']
-MAX_LENGTH = 5000 # constant used to take random sampling of tweets to shorten processing time
+MAX_LENGTH = 10000 # constant used to take random sampling of tweets to shorten processing time
 # GLOBAL_YEAR = ['2013']
 # GLOBAL_TWEETS = get_tweets(GLOBAL_YEAR[0], tokenize=False)
 # GLOBAL_TWEETS = ['NOT WORKING']
 
+
+def get_all(year):
+    winner_dict = get_winner(year)
+    awards = OFFICIAL_AWARDS_1315
+    nominee_dict = get_nominees(year)
+    presenter_dict = get_presenters(year)
+
+    for award in awards:
+        print(award + ': ')
+        print("winner: " + winner_dict[award])
+        for nom in nominee_dict[award]:
+            print("nominee: " + nom)
+        print("presenters: " + presenter_dict[award] + "\n")
 
 def get_names(text):
     person_list = []
@@ -36,9 +49,10 @@ def get_names(text):
 def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
-    # GLOBAL_YEAR[0] = year
     tweets = get_tweets(year, tokenize=False)
-    filtered_tweets = filter_tweets(tweets, ['hosting','hosted'])
+    keyword = 'host'
+    stopword = 'should'
+    filtered_tweets = filter_tweets(tweets, [keyword], [stopword])
     print("CALLED GET TWEETS IN GET HOSTS")
     cnt = Counter()
     host_tweets = filtered_tweets
@@ -61,10 +75,17 @@ def get_hosts(year):
                 else:
                     host_names[name] += 1
 
+    print("NAMES LOADED")
+
     hosts = [max(host_names, key=host_names.get)]
     if int(year) < 2018:
-        host_names.pop(hosts[0])
-        hosts.append(max(host_names, key=host_names.get))
+        compare_name = hosts[0]
+        del host_names[compare_name]
+        next_name = max(host_names, key=host_names.get)
+        while compare_name in next_name or next_name in compare_name:
+            compare_name = next_name
+            next_name = max(host_names, key=host_names.get)
+        hosts.append(next_name)
     # for name in names:
     #     cnt[name] += 1
     # count = 1
@@ -135,7 +156,7 @@ def get_awards(year):
     for tweet in tweets:
         if 'Best' in tweet or 'best' in tweet:
             ct += 1
-            current_word_list = re.findall(r"['a-zA-Z]+\b", ' '.join(tweet))
+            current_word_list = re.findall(r"['a-zA-Z]+\b", tweet)
             filtered.append(' '.join(current_word_list))
 
     # print("LEN OF FILTERED:", len(filtered)) # test count
@@ -202,7 +223,7 @@ def get_awards(year):
     print(awards)
     return awards
 
-def tag_tweets(year):
+def tag_tweets(year, presenters=False):
     if int(year) < 2016:
         awards_list = OFFICIAL_AWARDS_1315
     else:
@@ -220,25 +241,26 @@ def tag_tweets(year):
 
     print("GOT TWEETS! NOW FILTERING...")
     filter_keywords = ['Best', 'best', 'Cecil', 'cecil', 'nominated', 'nominee', 'nominees']
-    filtered_tweets = filter_tweets(tweets, filter_keywords)
-    if len(filtered_tweets) > MAX_LENGTH:
-        sampled_tweets = sample(filtered_tweets, MAX_LENGTH)
-    else:
-        sampled_tweets = filtered_tweets
-    print("FILTERED AND SAMPLED! TWEETS IS OF LENGTH", len(sampled_tweets))
+    filtered_tweets = filter_tweets(tweets, filter_keywords, [])
+    if presenters:
+        filtered_tweets = filter_tweets(filtered_tweets, ['present'], [])
+    # if len(filtered_tweets) > MAX_LENGTH:
+    #     sampled_tweets = get_sample(filtered_tweets, MAX_LENGTH)
+    # else:
+    #     sampled_tweets = filtered_tweets
+    print("FILTERED AND SAMPLED! TWEETS IS OF LENGTH", len(filtered_tweets))
     # initialize dict with ALL award categories for autograder compatibility
     relevant_tweets = {key: [] for key in awards_list}
     print("TWEETS DICT INITIALIZED WITH LENGTH", len(relevant_tweets))
 
-    for tweet in sampled_tweets:
+    for tweet in filtered_tweets:
         for award in award_keywords:
             if all(kw in tweet for kw in award_keywords[award]):
                 relevant_tweets[award].append(tweet)
     # print(len(relevant_tweets), relevant_tweets.keys())
     return relevant_tweets
 
-def get_nominee_counts(year):
-    relevant_tweets = tag_tweets(year)
+def get_nominee_counts(year, relevant_tweets):
     print("IN GET_NOMINEE_COUNTS, TWEETS DICT HAS LENGTH", len(relevant_tweets))
     # 2. identify named entities in each tag tweet - looks through dict of list of tweets and identifies
     #    the named entities in each tweet
@@ -248,10 +270,13 @@ def get_nominee_counts(year):
         for tweet in relevant_tweets[award]:
             doc = nlp(tweet)
             # if award is given to a person, filter out the named entities not are not people
+            # print('AWARD NAME', award)
             # if 'actor' or 'actress' in award:
             #     ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
+            #     #print("PERSON!", ents_list)
             # else:
-            #     ents_list = doc.ents # [ent for ent in doc.ents if ent.label_ != 'PERSON']
+            #     ents_list = [ent for ent in doc.ents if ent.label_ != 'PERSON']
+            #     #print("NOT PERSON!", ents_list)
             ents_list = doc.ents
             for ent in ents_list:
                 if ent.text not in stopwordsList and '#' not in ent.text:
@@ -276,13 +301,12 @@ def get_nominee_counts(year):
 
     return nominees
 
-# TOP_NOMINEES = get_nominee_counts(GLOBAL_YEAR[0])
-
 def get_nominees(year):
     '''Nominees is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change
     the name of this function or what it returns.'''
-    nominees = get_nominee_counts(year)
+    relevant_tweets = tag_tweets(year)
+    nominees = get_nominee_counts(year, relevant_tweets)
     print("NOMINEES:", nominees)
     return nominees
 
@@ -291,14 +315,8 @@ def get_winner(year):
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
     print("GETTING WINNERS...")
-
-    # nominee_counts = get_nominee_counts(year)
-    # nominee_counts = GLOBAL_NOMINEE_COUNTS
-    nominees = get_nominee_counts(year)
-    # winners = {key: [] for key in nominee_counts}
-    # for award in nominee_counts:
-    #     if nominee_counts[award]:
-    #         winners[award] = max(nominee_counts[award], key=nominee_counts[award].get)
+    relevant_tweets = tag_tweets(year)
+    nominees = get_nominee_counts(year, relevant_tweets)
     winners = {}
     for award in nominees:
         if nominees[award]:
@@ -312,10 +330,15 @@ def get_presenters(year):
     '''Presenters is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change the
     name of this function or what it returns.'''
-    # Your code here
+    presenter_tweets = tag_tweets(year, presenters=True)
+    nominees = get_nominee_counts(year, presenter_tweets)
     presenters = {}
-    for element in OFFICIAL_AWARDS_1315:
-        presenters[element] = ""
+    for award in nominees:
+        if nominees[award]:
+            presenters[award] = nominees[award][0]  # first element is the nominee with highest count
+        else:
+            presenters[award] = ''
+    print("WINNERS:", presenters)
     return presenters
 
 def pre_ceremony():
@@ -337,7 +360,7 @@ def main():
     # Your code here
     while True:
         year = input("Award year: ")
-        print("Options:\n1. Get Hosts\n2. Get Awards\n3. Get Nominees\n4. Get Winners\n5. Get Presenters\nx. Exit Program")
+        print("Options:\n1. Get Hosts\n2. Get Awards\n3. Get Nominees\n4. Get Winners\n5. Get Presenters\n6. Read All\nx. Exit Program")
         entry = input("Enter option: ")
         if entry == '1':
             hosts = get_hosts(year)
@@ -352,6 +375,8 @@ def main():
         elif entry == '4':
             winners = get_winner(year)
             print(winners)
+        elif entry == '6':
+            get_all(year)
         elif entry == "x":
             sys.exit()
         else:
