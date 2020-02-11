@@ -16,9 +16,10 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
 stopwordsList = stopwords + ['The Golden Globes', 'the Golden Globes', 'the Golden Globe', 'GoldenGlobes', 'Golden', 'Globes', 'Golden Globes', 'RT', 'VanityFair', 'golden', 'globes' '@', 'I', 'we', 'http', '://', '/', 'com', 'Best', 'best', 'Looking','Nice', 'Most', 'Pop', 'Hip Hop', 'Rap', 'We', 'Love', 'Awkward','Piece', 'While', 'Boo', 'Yay', 'Congrats', 'And', 'The', 'Gq', 'Refinery29', 'USWeekly', 'TMZ', 'Hollywood', 'Watching', 'Hooray', 'That', 'Yeah', 'Can', 'So', 'And', 'But', 'What', 'NShowBiz', 'She', 'Mejor', 'Did', 'Vanity', 'Fair', 'Drama', 'MotionPicture', 'News', 'Take', 'Before', 'Director', 'Award', 'Movie Award', 'Music Award', 'Best Director', 'Best Actor', 'Best Actress', 'Am', 'Golden Globe', 'Globe', 'Awards', 'It', 'first','this year']
-MAX_LENGTH = 20000 # constant used to take random sampling of tweets to shorten processing time
-GLOBAL_YEAR = ['2013']
-GLOBAL_TWEETS = get_tweets(GLOBAL_YEAR[0], tokenize=False)
+MAX_LENGTH = 5000 # constant used to take random sampling of tweets to shorten processing time
+# GLOBAL_YEAR = ['2013']
+# GLOBAL_TWEETS = get_tweets(GLOBAL_YEAR[0], tokenize=False)
+# GLOBAL_TWEETS = ['NOT WORKING']
 
 
 def get_names(text):
@@ -35,26 +36,43 @@ def get_names(text):
 def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
-    GLOBAL_YEAR[0] = year
-    tweets = get_tweets(GLOBAL_YEAR[0])
+    # GLOBAL_YEAR[0] = year
+    tweets = get_tweets(year, tokenize=False)
+    filtered_tweets = filter_tweets(tweets, ['hosting','hosted'])
+    print("CALLED GET TWEETS IN GET HOSTS")
     cnt = Counter()
-    host_tweets = []
-    hosts = []
+    host_tweets = filtered_tweets
+    host_names = {}
 
-    for tweet in tweets:
-        if 'hosting' in tweet or 'hosted' in tweet:
-            host_tweets.append(tweet)
+    # for tweet in tweets:
+    #     if 'hosting' in tweet or 'hosted' in tweet:
+    #         host_tweets.append(tweet)
 
-    names = get_names(host_tweets)
-    
-    for name in names:
-        cnt[name] += 1
-    count = 1
-    for word, value in cnt.most_common(2):
-        #note - this approach assumes two hosts, which is true for about half of the Golden Globes to date
-        #because of the huge variety of name conventions, stage names, and cultures, proper name validation beyond just finding apital words is tricky
-        hosts.append(word)
-    #print('Hosts:')
+    # names = get_names(host_tweets)
+    nlp = spacy.load('en_core_web_sm')
+    for tweet in host_tweets:
+        doc = nlp(tweet)
+        ents_list = doc.ents
+        for ent in ents_list:
+            if ent.label_ == 'PERSON' and ent.text not in stopwordsList and '#' not in ent.text and '@' not in ent.text:
+                name = ent.text.lower()
+                if name not in host_names:
+                    host_names[name] = 0
+                else:
+                    host_names[name] += 1
+
+    hosts = [max(host_names, key=host_names.get)]
+    if int(year) < 2018:
+        host_names.pop(hosts[0])
+        hosts.append(max(host_names, key=host_names.get))
+    # for name in names:
+    #     cnt[name] += 1
+    # count = 1
+    # for word, value in cnt.most_common(2):
+    #     #note - this approach assumes two hosts, which is true for about half of the Golden Globes to date
+    #     #because of the huge variety of name conventions, stage names, and cultures, proper name validation beyond just finding apital words is tricky
+    #     hosts.append(word)
+    # print('Hosts:', hosts)
     return hosts
 
 def process(award, year):
@@ -104,7 +122,7 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    tweets = get_tweets(year)
+    tweets = get_tweets(year, tokenize=False)
     print("Year:", year)
     cutoff_year = 2016 # year when category names underwent minor changes
     awards = []
@@ -184,9 +202,6 @@ def get_awards(year):
     print(awards)
     return awards
 
-def filter_tweets(tweets, keywords):
-    return [tweet for tweet in tweets if any(keyword in tweet for keyword in keywords)]
-
 def tag_tweets(year):
     if int(year) < 2016:
         awards_list = OFFICIAL_AWARDS_1315
@@ -199,7 +214,8 @@ def tag_tweets(year):
                                   'by', 'an', 'in', 'a', '-', 'or', ',', 'made', 'mini-series', 'role', 'original']
     # 1. tag tweets with award category - creates dict of list of tweets, with award titles as keys
     # tweets = get_tweets(year, tokenize=False)
-    tweets = GLOBAL_TWEETS # changed to accept a preprocessed collection of tweets
+    tweets = get_tweets(year, tokenize=False) # changed to accept a preprocessed collection of tweets
+    print("CALLED GET TWEETS IN TAG TWEETS")
     award_keywords = get_award_keywords(awards_list, stopwords_list)
 
     print("GOT TWEETS! NOW FILTERING...")
@@ -260,13 +276,13 @@ def get_nominee_counts(year):
 
     return nominees
 
-TOP_NOMINEES = get_nominee_counts(GLOBAL_YEAR[0])
+# TOP_NOMINEES = get_nominee_counts(GLOBAL_YEAR[0])
 
 def get_nominees(year):
     '''Nominees is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change
     the name of this function or what it returns.'''
-    nominees = TOP_NOMINEES
+    nominees = get_nominee_counts(year)
     print("NOMINEES:", nominees)
     return nominees
 
@@ -278,7 +294,7 @@ def get_winner(year):
 
     # nominee_counts = get_nominee_counts(year)
     # nominee_counts = GLOBAL_NOMINEE_COUNTS
-    nominees = TOP_NOMINEES
+    nominees = get_nominee_counts(year)
     # winners = {key: [] for key in nominee_counts}
     # for award in nominee_counts:
     #     if nominee_counts[award]:
@@ -307,11 +323,8 @@ def pre_ceremony():
     will use, and stores that data in your DB or in a json, csv, or
     plain text file. It is the first thing the TA will run when grading.
     Do NOT change the name of this function or what it returns.'''
-    # if len(sys.argv) > 1:
-    #     if '2013' in sys.argv:
-    #         year = '2013'
-    #     elif '2015' in sys.argv:
-    #         year = '2015'
+    # global GLOBAL_TWEETS
+    # GLOBAL_TWEETS = get_tweets(year, tokenize=False)
     print("Pre-ceremony processing complete.")
     return
 
@@ -346,5 +359,6 @@ def main():
     return
 
 if __name__ == '__main__':
+    # year = '2013' # change this to edit year
     pre_ceremony()
     main()

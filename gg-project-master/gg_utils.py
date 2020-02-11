@@ -2,11 +2,13 @@ import json
 import sys
 import nltk
 import string
+from random import sample
 from nltk.tokenize import RegexpTokenizer
 from nltk.tokenize import word_tokenize
 
 official_tweets = []
 tweets = []
+MAX_LENGTH = 5000
 
 
 def get_tweets(year, tokenize=True):
@@ -29,14 +31,18 @@ def get_tweets(year, tokenize=True):
         text.append(t)
 
     print("GOT DATA OF LENGTH", len(text))
+    if len(text) > MAX_LENGTH:
+        sampled_text = sample(text, MAX_LENGTH)
+    else:
+        sampled_text = text
 
     # returns text of tweets if 'tokenize' is false
     if not tokenize:
-        return text
+        return sampled_text
 
     tokenizer = RegexpTokenizer(r'\w+')
 
-    for tweet in text:
+    for tweet in sampled_text:
         tweets.append(nltk.wordpunct_tokenize(tweet))
 
     return tweets
@@ -65,5 +71,8 @@ def partition(pred, iterable):
         else:
             falses.append(item)
     return trues, falses
+
+def filter_tweets(tweets, keywords):
+    return [tweet for tweet in tweets if any(keyword in tweet for keyword in keywords)]
 
 # print(get_tweets(2013, tokenize=False)[:3])
