@@ -1,30 +1,59 @@
 import json
-import sys
 import nltk
-import string
-from random import sample
+from copy import deepcopy
 from nltk.tokenize import RegexpTokenizer
 from nltk.tokenize import word_tokenize
 
-official_tweets = []
-tweets = []
-MAX_LENGTH = 10000
-sub_samples = 10
+
+def to_lower_case(text):
+    text = deepcopy(text)
+    return [t.lower() for t in text]
+
+
+def get_tweets(year):
+    filename = 'gg jsons/gg%s.json' % str(year)
+    text = []
+    try:
+        # 2013 and 2015 format is one giant json file
+        with open(filename) as json_file:
+            tweets = json.load(json_file)
+            print(type(tweets))
+            for tweet in tweets:
+                text.append(tweet["text"])
+    except:
+        # 2020 format is one json object per line
+        with open(filename, encoding="utf-8") as f:
+            for line in f:
+                text.append(json.loads(line)["text"])
+
+    return text
+
+
+def filter_tweets(tweets, strict_keywords, loose_keywords, filterwords):
+    return [tweet for tweet in tweets if all(keyword in tweet for keyword in strict_keywords)
+            and any(keyword in tweet for keyword in loose_keywords)
+            and not any(filterword in tweet for filterword in filterwords)]
+
 
 def get_sample(tweets, max_len):
     print("CREATING SAMPLE")
+    sub_samples = 10
     sample = []
-    step_size = int(len(tweets)/sub_samples)
-    sub_sample_size = int(max_len/sub_samples)
+    step_size = int(len(tweets) / sub_samples)
+    sub_sample_size = int(max_len / sub_samples)
     for i in range(0, len(tweets), step_size):
-        sample += tweets[i:i+sub_sample_size]
+        sample += tweets[i:i + sub_sample_size]
     print("CREATED SAMPLE OF LENGTH", len(sample))
     return sample
 
-def get_tweets(year, tokenize=True):
+
+def get_tokenized_tweets(year, tokenize=True):
+    MAX_LENGTH = 10000
+    sub_samples = 10
     # change this to read desired file
     filename = 'gg jsons/gg%s.json' % str(year)
     text = []
+    tweets = []
     try:
         # the gg2013 and 2015 format is one giant json file
         with open(filename) as json_file:
@@ -81,8 +110,5 @@ def partition(pred, iterable):
             trues.append(item)
         else:
             falses.append(item)
-    return trues, falses
 
-def filter_tweets(tweets, keywords, stopwords):
-    return [tweet for tweet in tweets if any(keyword in tweet for keyword in keywords)
-            and not any(stopword in tweet for stopword in stopwords)]
+    return trues, falses
