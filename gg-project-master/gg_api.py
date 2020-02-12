@@ -108,6 +108,33 @@ filter_dict_1819 = {'best motion picture - drama':[['drama'],['motion','picture'
                    'best performance by an actor in a supporting role in a series, limited series or motion picture made for television':[['actor','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
                    'cecil b. demille award':[[],['cecil','demille'],[]]}
 
+filter_dict_1315 = {'best motion picture - drama':[['drama'],['motion','picture'],['actor','actress','television','tv','series']],
+                   'best motion picture - comedy or musical':[['picture'],['musical','comedy'],['actor','actress','television','tv','series']],
+                   'best performance by an actress in a motion picture - drama':[['actress','drama'],['motion','picture'],['television','tv','series']],
+                   'best performance by an actor in a motion picture - drama':[['actor','drama'],['motion','picture'],['television','tv','series']],
+                   'best performance by an actress in a motion picture - comedy or musical':[['actress','picture'],['musical','comedy'],['television','tv','series']],
+                   'best performance by an actor in a motion picture - comedy or musical':[['actor','picture'],['musical','comedy'],['television','tv','series']],
+                   'best performance by an actress in a supporting role in a motion picture':[['actress','supporting'],['motion','picture'],['television','tv','series']],
+                   'best performance by an actor in a supporting role in a motion picture':[['actor','supporting'],['motion','picture'],['television','tv','series']],
+                   'best director - motion picture':[['director'],['motion','picture'],['actor','actress','television','tv','series']],
+                   'best screenplay - motion picture':[['screenplay'],['motion','picture'],['actor','actress','television','tv','series']],
+                   'best animated feature film':[['animated'],['motion','picture','feature','film'],['actor','actress','television','tv','series']],
+                   'best foreign language film':[['foreign'],['motion','picture','film'],['actor','actress','television','tv','series']],
+                   'best original score - motion picture':[['score'],['motion','picture','film','movie'],['actor','actress','television','tv','series']],
+                   'best original song - motion picture':[['song'],['motion','picture','film','movie'],['actor','actress','television','tv','series']],
+                   'best television series - drama':[['drama'],['television','tv','series'],['actor','actress','motion picture']],
+                   'best television series - comedy or musical':[['comedy'],['television','tv','series'],['actor','actress','motion picture']],
+                   'best television mini-series or motion picture made for television':[['picture','television'],['motion','picture','television','limited','series'],['actor','actress']],
+                   'best performance by an actress in a mini-series or a motion picture made for television':[['actress','picture','television'],['motion','picture','television'],[]],
+                   'best performance by an actor in a mini-series or a motion picture made for television':[['actor','picture','television'],['motion','picture','television'],[]],
+                   'best performance by an actress in a television series - drama':[['actress','drama'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actor in a television series - drama':[['actor','drama'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actress in a television series - comedy or musical':[['actress','comedy'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actor in a television series - comedy or musical':[['actor','drama'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television':[['actress','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
+                   'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television':[['actor','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
+                   'cecil b. demille award':[[],['cecil','demille'],[]]}
+
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
 additional_stopwords = ['/', '://', 'am', 'and', 'award', 'awards', 'awkward', 'before', 'best', 'best actor',
@@ -192,28 +219,25 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    tweets = get_tweets(year, tokenize=False)
+    tweets = get_tweets(year)
     print("Year:", year)
-    cutoff_year = 2016  # year when category names underwent minor changes
     awards = []
-    if int(year) < cutoff_year:
-        com = ' - comedy or musical '
-    else:
-        com = ' - musical or comedy '
     filtered = []
-    ct = 0  # test count
+    ct = 0 # test count
     for tweet in tweets:
-        if 'best' in tweet:
+        if 'best' in tweet or 'Best' in tweet:
             ct += 1
-            current_word_list = re.findall(r"['a-zA-Z]+\b", tweet)
-            filtered.append(' '.join(current_word_list))
+            filtered.append(tweet.lower())
 
-    rbd = re.compile(r"(Best\s[a-zA-z\s-]*Drama)")
-    rbm = re.compile(r"(Best\s[a-zA-z\s-]*Musical)")
-    rbc = re.compile(r"(Best\s[a-zA-z\s-]*Comedy)")
-    rbmp = re.compile(r"(Best\s[a-zA-Z\s-]*Motion Picture)")
-    rbt = re.compile(r"(Best\s[a-zA-Z\s-]*Television)")
-    rbf = re.compile(r"(Best\s[a-zA-Z\s-]*Film)")
+    # print("LEN OF FILTERED:", len(filtered)) # test count
+
+    rbd = re.compile(r"(best\s[a-zA-z\s-]*drama)")
+    rbm = re.compile(r"(best\s[a-zA-z\s-]*musical)")
+    rbc = re.compile(r"(best\s[a-zA-z\s-]*comedy)")
+    rbmp = re.compile(r"(best\s[a-zA-Z\s-]*motion picture)")
+    rbt = re.compile(r"(best\s[a-zA-Z\s-]*television)")
+    rbf = re.compile(r"(best\s[a-zA-Z\s-]*film)")
+
 
     for tweet in filtered:
         drama = re.search(rbd, tweet)
@@ -226,50 +250,57 @@ def get_awards(year):
         if drama:
             for s in drama.groups():
                 award = str(s.lower())
-                award = award.replace(' drama', ' - drama')
-                awards.append(process(award.strip(), year))
+                awards.append(award)
         elif musical and not comedy:
             for s in musical.groups():
                 award = str(s.lower())
-                if ' musical' in award and 'comedy' not in award:
-                    award = award.replace(' musical', com)
-                if int(year) < cutoff_year:
-                    if ' - musical or comedy ' in award:
-                        award = award.replace(' - musical or comedy ', com)
-                else:
-                    if ' - comedy or musical ' in award:
-                        award = award.replace(' - comedy or musical ', com)
-                awards.append(process(award.strip(), year))
+                awards.append(award)
         elif comedy:
             for s in comedy.groups():
                 award = str(s.lower())
-                if ' comedy' in award and 'musical' not in award:
-                    award = award.strip().replace(' comedy', com)
-                if int(year) < cutoff_year:
-                    if ' - musical or comedy ' in award:
-                        award = award.replace(' - musical or comedy ', com)
-                else:
-                    if ' - comedy or musical ' in award:
-                        award = award.replace(' - comedy or musical ', com)
-                awards.append(process(award.strip(), year))
+                awards.append(award)
         elif mopic:
             for s in mopic.groups():
                 award = str(s.lower())
-                awards.append(process(award.strip(), year))
+                awards.append(award)
         elif tv:
             for s in tv.groups():
                 award = str(s.lower())
-                awards.append(process(award.strip(), year))
+                awards.append(award)
         elif film:
             for s in film.groups():
                 award = str(s.lower())
-                awards.append(process(award.strip(), year))
+                awards.append(award)
 
-    awards = [award[0] for award in nltk.FreqDist(awards).most_common(len(OFFICIAL_AWARDS_1315)) if
-              award[0] is not None]
-    print("COUNT OF TWEETS WITH 'BEST':", ct)
-    print(awards)
-    return awards
+    #print("COUNT OF TWEETS WITH 'BEST':", ct)
+    #print(awards)
+    freq = {}
+    for items in awards:
+        if len(items.split()) > 4 and 'tv' not in items and 'the' not in items:
+            freq[items] = awards.count(items)
+
+    for j in freq:
+        for k in freq:
+            if j == k:
+                continue
+            if j in k:
+                freq[k] += freq[j]
+                freq[j] = 0
+                break
+
+    sorted_by_freq = {k: v for k, v in sorted(freq.items(), key=lambda item: item[1], reverse=True)}
+    best_awards = []
+    i = 0
+    for award in sorted_by_freq:
+        if sorted_by_freq[award] > 10:
+            print(sorted_by_freq[award])
+            best_awards.append(award)
+        i+=1
+        if i > 25:
+            break
+    print(best_awards)
+    print(len(best_awards))
+    return best_awards
 
 
 def get_relevant_tweets(tweets):
