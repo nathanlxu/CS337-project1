@@ -17,7 +17,6 @@ def get_tweets(year):
         # 2013 and 2015 format is one giant json file
         with open(filename) as json_file:
             tweets = json.load(json_file)
-            print(type(tweets))
             for tweet in tweets:
                 text.append(tweet["text"])
     except:
@@ -30,9 +29,9 @@ def get_tweets(year):
 
 
 def filter_tweets(tweets, strict_keywords, loose_keywords, filterwords):
-    return [tweet for tweet in tweets if all(keyword in tweet for keyword in strict_keywords)
-            and any(keyword in tweet for keyword in loose_keywords)
-            and not any(filterword in tweet for filterword in filterwords)]
+    return [tweet for tweet in tweets if all(keyword in tweet.lower() for keyword in strict_keywords)
+            and any(keyword in tweet.lower() for keyword in loose_keywords)
+            and not any(filterword in tweet.lower() for filterword in filterwords)]
 
 
 def get_sample(tweets, max_len):

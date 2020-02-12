@@ -54,6 +54,33 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
                         'best performance by an actor in a supporting role in a series, limited series or motion picture made for television',
                         'cecil b. demille award']
 
+filter_dict_1315 = {'best motion picture - drama':[['drama'],['motion','picture'],['actor','actress','television','tv','series']],
+                   'best motion picture - comedy or musical':[['picture'],['musical','comedy'],['actor','actress','television','tv','series']],
+                   'best performance by an actress in a motion picture - drama':[['actress','drama'],['motion','picture'],['television','tv','series']],
+                   'best performance by an actor in a motion picture - drama':[['actor','drama'],['motion','picture'],['television','tv','series']],
+                   'best performance by an actress in a motion picture - comedy or musical':[['actress','picture'],['musical','comedy'],['television','tv','series']],
+                   'best performance by an actor in a motion picture - comedy or musical':[['actor','picture'],['musical','comedy'],['television','tv','series']],
+                   'best performance by an actress in a supporting role in a motion picture':[['actress','supporting'],['motion','picture'],['television','tv','series']],
+                   'best performance by an actor in a supporting role in a motion picture':[['actor','supporting'],['motion','picture'],['television','tv','series']],
+                   'best director - motion picture':[['director'],['motion','picture'],['actor','actress','television','tv','series']],
+                   'best screenplay - motion picture':[['screenplay'],['motion','picture'],['actor','actress','television','tv','series']],
+                   'best animated feature film':[['animated'],['motion','picture','feature','film'],['actor','actress','television','tv','series']],
+                   'best foreign language film':[['foreign'],['motion','picture','film'],['actor','actress','television','tv','series']],
+                   'best original score - motion picture':[['score'],['motion','picture','film','movie'],['actor','actress','television','tv','series']],
+                   'best original song - motion picture':[['song'],['motion','picture','film','movie'],['actor','actress','television','tv','series']],
+                   'best television series - drama':[['drama'],['television','tv','series'],['actor','actress','motion picture']],
+                   'best television series - comedy or musical':[['comedy'],['television','tv','series'],['actor','actress','motion picture']],
+                   'best mini-series or motion picture made for television':[['picture','television'],['motion','picture','television','limited','series'],['actor','actress']],
+                   'best performance by an actress in a mini-series or motion picture made for television':[['actress','picture','television'],['motion','picture','television'],[]],
+                   'best performance by an actor in a mini-series or motion picture made for television':[['actor','picture','television'],['motion','picture','television'],[]],
+                   'best performance by an actress in a television series - drama':[['actress','drama'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actor in a television series - drama':[['actor','drama'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actress in a television series - comedy or musical':[['actress','comedy'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actor in a television series - comedy or musical':[['actor','drama'],['television','tv','series'],['motion','picture']],
+                   'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television':[['actress','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
+                   'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television':[['actor','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
+                   'cecil b. demille award':[[],['cecil','demille'],[]]}
+
 filter_dict_1819 = {'best motion picture - drama':[['drama'],['motion','picture'],['actor','actress','television','tv','series']],
                    'best motion picture - musical or comedy':[['picture'],['musical','comedy'],['actor','actress','television','tv','series']],
                    'best performance by an actress in a motion picture - drama':[['actress','drama'],['motion','picture'],['television','tv','series']],
@@ -127,7 +154,8 @@ def get_hosts(year):
     tweets = get_tweets(year)
     keyword = 'host'
     filterword = 'should'
-    filtered_tweets = filter_tweets(tweets, [keyword], [filterword])
+    # filtered_tweets = filter_tweets(tweets, [keyword], [keyword], [filterword])
+    filtered_tweets = [tweet for tweet in tweets if 'host' in tweet.lower() and not 'should' in tweet.lower()]
     print("CALLED GET TWEETS IN GET HOSTS")
     host_tweets = filtered_tweets
     host_names = {}
@@ -151,11 +179,12 @@ def get_hosts(year):
         compare_name = hosts[0]
         del host_names[compare_name]
         next_name = max(host_names, key=host_names.get)
-        while compare_name in next_name or next_name in compare_name:
+        while (len(host_names) > 1) and compare_name in next_name or next_name in compare_name:
             compare_name = next_name
             next_name = max(host_names, key=host_names.get)
         hosts.append(next_name)
 
+    print("GET HOSTS RETURNED:")
     return hosts
 
 
@@ -249,23 +278,91 @@ def get_relevant_tweets(tweets):
     relevant_tweets = filter_tweets(tweets, [], loose_keywords, [])
     return relevant_tweets
 
+
 def tag_tweets(year, tweets):
     # tag tweets with award category - creates dict of list of tweets, with award titles as keys
     if int(year) < 2016:
         awards_list = OFFICIAL_AWARDS_1315
-        filter_dict = filter_dict_1819
+        filter_dict = filter_dict_1315
     else:
         awards_list = OFFICIAL_AWARDS_1819
         filter_dict = filter_dict_1819
 
     # initialize dict with ALL award categories for autograder compatibility
     tagged_tweets = {key: [] for key in awards_list}
-    print("TAGGED TWEETS INITIALIZED WITH LENGTH", len(tagged_tweets))
+    # print("TAGGED TWEETS INITIALIZED WITH LENGTH", len(tagged_tweets))
+    # filter tweets for each award category given strict keywords, loose keywords, and filter words
     for award in tagged_tweets:
         tagged_tweets[award] = filter_tweets(tweets, filter_dict[award][0], filter_dict[award][1], filter_dict[award][2])
 
-    print("TAGGED TWEETS KEYS:", len(tagged_tweets), tagged_tweets.keys())
+    # print("TAGGED TWEETS KEYS:", len(tagged_tweets), tagged_tweets.keys())
     return tagged_tweets
+
+
+def get_named_entities(tagged_tweets):
+    # looks through list of tweets in tagged tweets dict and identifies named entities in each tweet
+    nlp = spacy.load('en_core_web_sm')
+    named_entities = {key: [] for key in tagged_tweets}
+    for award in tagged_tweets:
+        for tweet in tagged_tweets[award]:
+            doc = nlp(tweet)
+            # if award is given to a person, filter out the named entities not are not people
+            # print('AWARD NAME', award)
+            if ('actor' or 'actress') in award:
+                ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
+                # print("PERSON!", ents_list)
+            else:
+                ents_list = [ent for ent in doc.ents if ent.label_ != 'PERSON']
+                # print("NOT PERSON!", ents_list)
+            # ents_list = doc.ents
+            for ent in ents_list:
+                e = ent.text.lower()
+                if e not in combined_stopwords and '#' not in e:
+                    if e not in award:
+                        named_entities[award].append(e)
+
+    return named_entities
+
+
+def count_named_entities(named_entities):
+    # count up each unique named entity per award category
+    named_entity_counts = {}
+    for award, named_entities_list in named_entities.items():
+        z = zip(Counter(named_entities_list).keys(), Counter(named_entities_list).values())
+        sorted_named_entities = dict(sorted(z, key=lambda x: x[1], reverse=True))
+        named_entity_counts[award] = sorted_named_entities
+
+    return named_entity_counts
+
+
+def top_k_nominees(named_entity_counts, k):
+    top_nominees = {key: [] for key in named_entity_counts}
+    for award in named_entity_counts:
+        top_nominees[award] = sorted(named_entity_counts[award], key=named_entity_counts[award].get, reverse=True)[:k]
+
+    return top_nominees
+
+
+def get_nominees_and_winners(year):
+    # tweets = to_lower_case(get_tweets(year)) # lower case tweets mess up the NER
+    tweets = get_tweets(year)
+    relevant_tweets = get_relevant_tweets(tweets)
+    tagged_tweets = tag_tweets(year, relevant_tweets)
+    named_entities = get_named_entities(tagged_tweets)
+    named_entities_count = count_named_entities(named_entities)
+    top_nominees = top_k_nominees(named_entities_count, 5)
+
+    nominees = {}
+    winners = {}
+    for award in top_nominees:
+        nominees[award] = top_nominees[award][1:]
+        winners[award] = top_nominees[award][0]
+
+    print("GOT NOMINEES AND WINNERS")
+    return nominees, winners
+
+
+# NOMINEES, WINNERS = get_nominees_and_winners(2013)
 
 
 def get_nominee_counts(year, relevant_tweets):
@@ -314,27 +411,14 @@ def get_nominees(year):
     '''Nominees is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change
     the name of this function or what it returns.'''
-    relevant_tweets = tag_tweets(year)
-    nominees = get_nominee_counts(year, relevant_tweets)
-    print("NOMINEES:", nominees)
-    return nominees
+    return get_nominees_and_winners(year)[0]
 
 
 def get_winner(year):
     '''Winners is a dictionary with the hard coded award
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
-    print("GETTING WINNERS...")
-    relevant_tweets = tag_tweets(year)
-    nominees = get_nominee_counts(year, relevant_tweets)
-    winners = {}
-    for award in nominees:
-        if nominees[award]:
-            winners[award] = nominees[award][0]  # first element is the nominee with highest count
-        else:
-            winners[award] = ''
-    print("WINNERS:", winners)
-    return winners
+    return get_nominees_and_winners(year)[1]
 
 
 def get_presenters(year):
@@ -358,8 +442,6 @@ def pre_ceremony():
     will use, and stores that data in your DB or in a json, csv, or
     plain text file. It is the first thing the TA will run when grading.
     Do NOT change the name of this function or what it returns.'''
-    # global GLOBAL_TWEETS
-    # GLOBAL_TWEETS = get_tweets(year, tokenize=False)
     print("Pre-ceremony processing complete.")
     return
 
