@@ -190,15 +190,15 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    tweets = get_tweets(year, tokenize=False)
+    tweets = get_tweets(year)
     print("Year:", year)
     awards = []
     filtered = []
     ct = 0 # test count
     for tweet in tweets:
-        if 'best' in tweet:
+        if 'best' in tweet or 'Best' in tweet:
             ct += 1
-            filtered.append(tweet)
+            filtered.append(tweet.lower())
 
     # print("LEN OF FILTERED:", len(filtered)) # test count
 
@@ -249,7 +249,7 @@ def get_awards(year):
     for items in awards:
         if len(items.split()) > 4 and 'tv' not in items and 'the' not in items:
             freq[items] = awards.count(items)
-    
+
     for j in freq:
         for k in freq:
             if j == k:
@@ -258,17 +258,17 @@ def get_awards(year):
                 freq[k] += freq[j]
                 freq[j] = 0
                 break
-    
 
     sorted_by_freq = {k: v for k, v in sorted(freq.items(), key=lambda item: item[1], reverse=True)}
     best_awards = []
     i = 0
     for award in sorted_by_freq:
         if sorted_by_freq[award] > 10:
+            print(sorted_by_freq[award])
             best_awards.append(award)
-        if i > 24:
-            break
         i+=1
+        if i > 25:
+            break
     print(best_awards)
     print(len(best_awards))
     return best_awards
