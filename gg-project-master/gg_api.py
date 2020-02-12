@@ -6,8 +6,8 @@ import spacy
 from collections import Counter
 from gg_utils import *
 from random import sample
-from collections import OrderedDict
-from difflib import SequenceMatcher
+
+
 
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
                         'best performance by an actress in a motion picture - drama',
@@ -137,14 +137,12 @@ filter_dict_1315 = {'best motion picture - drama':[['drama'],['motion','picture'
 
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
-additional_stopwords = ['/', '://', 'am', 'and', 'award', 'awards', 'awkward', 'before', 'best', 'best actor',
-                        'best actress', 'best director', 'boo', 'but', 'can', 'com', 'congrats', 'did', 'director',
-                        'drama', 'fair', 'first', 'globe', 'globes', 'globes@', 'golden', 'golden globe',
-                        'golden globes', 'goldenglobes', 'gq', 'hip hop', 'hollywood', 'hooray', 'http', 'i', 'it',
-                        'looking', 'love', 'mejor', 'most', 'motionpicture', 'movie award', 'music award', 'news',
-                        'nice', 'nshowbiz', 'piece', 'pop', 'rap', 'refinery29', 'rt', 'she', 'so', 'take', 'that',
-                        'the', 'the golden globe', 'the golden globes', 'this year', 'tmz', 'usweekly', 'vanity',
-                        'vanityfair', 'watching', 'we', 'what', 'while', 'yay', 'yeah']
+additional_stopwords = ['The Golden Globes', 'the Golden Globes', 'the Golden Globe', 'GoldenGlobes', 'Golden', 'Globes', 'Golden Globes', 
+'golden', 'globes', 'golden globes','Hollywood', 'hollywood', '@', 'http', 'https', '://', 'com', 'I', 'i', 'We', 'we', 'He', 'he', 'She', 
+'she', 'It', 'it', 'They', 'they', 'This', 'this', 'That', 'that', 'These', 'these', 'Those', 'those', 'There', 'there', 'Yeah', 'yeah', 
+'So', 'so', 'Twitter', 'twitter', 'Retweet', 'retweet', 'RT', 'rt', 'Drama', 'drama', 'Movie', 'movie', 'Before', 'before', 'Director', 
+'director', 'Award', 'award', 'Awards', 'awards', 'Best Director', 'best director', 'Best Actor', 'best actor', 'Best Actress', 'best actress', 
+'Movie Award', 'movie award', 'oscars', 'Oscars', 'movie sisters']
 combined_stopwords = stopwords + additional_stopwords
 MAX_LENGTH = 10000  # constant used to take random sampling of tweets to shorten processing time
 
@@ -179,13 +177,13 @@ def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
     tweets = get_tweets(year)
-    keyword = 'host'
+    keyword = ['hosted', 'hosting']
     filterword = 'should'
     # filtered_tweets = filter_tweets(tweets, [keyword], [keyword], [filterword])
-    filtered_tweets = [tweet for tweet in tweets if 'host' in tweet.lower() and not 'should' in tweet.lower()]
+    filtered_tweets = [tweet for tweet in tweets if 'hosted' in tweet.lower() or 'hosting' in tweet.lower() and not 'should' in tweet.lower()]
     print("CALLED GET TWEETS IN GET HOSTS")
     host_tweets = filtered_tweets
-    host_names = {}
+    host_names = Counter()
 
     nlp = spacy.load('en_core_web_sm')
     for tweet in host_tweets:
@@ -202,14 +200,21 @@ def get_hosts(year):
     print("NAMES LOADED")
 
     hosts = [max(host_names, key=host_names.get)]
+    compare_name = hosts[0]
+    print(host_names)
+    while ' ' not in compare_name:
+      del host_names[compare_name]
+      compare_name = host_names.most_common(1)[0][0]
+      hosts = [compare_name]
+
     if int(year) < 2018:
-        compare_name = hosts[0]
-        del host_names[compare_name]
-        next_name = max(host_names, key=host_names.get)
-        while (len(host_names) > 1) and compare_name in next_name or next_name in compare_name:
-            compare_name = next_name
-            next_name = max(host_names, key=host_names.get)
+        next_name = host_names.most_common(1)[0][0]
+        while compare_name in next_name or next_name in compare_name or ' ' not in next_name:
+            del host_names[next_name]
+            next_name = host_names.most_common(1)[0][0]
         hosts.append(next_name)
+
+    return hosts
 
     print("GET HOSTS RETURNED:")
     return hosts
