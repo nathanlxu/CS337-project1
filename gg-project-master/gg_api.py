@@ -201,7 +201,7 @@ def get_hosts(year):
 
     hosts = [max(host_names, key=host_names.get)]
     compare_name = hosts[0]
-    print(host_names)
+
     while ' ' not in compare_name:
       del host_names[compare_name]
       compare_name = host_names.most_common(1)[0][0]
@@ -213,8 +213,6 @@ def get_hosts(year):
             del host_names[next_name]
             next_name = host_names.most_common(1)[0][0]
         hosts.append(next_name)
-
-    return hosts
 
     print("GET HOSTS RETURNED:")
     return hosts
