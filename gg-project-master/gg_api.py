@@ -114,7 +114,7 @@ stopwords = nltk.corpus.stopwords.words('english')
 additional_stopwords = ['/', '://', 'am', 'and', 'award', 'awards', 'awkward', 'before', 'best', 'best actor',
                         'best actress', 'best director', 'boo', 'but', 'can', 'com', 'congrats', 'did', 'director',
                         'drama', 'fair', 'first', 'globe', 'globes', 'globes@', 'golden', 'golden globe', 'goldenglobe',
-                        'golden globes', 'goldenglobes', 'gq', 'hip hop', 'hollywood', 'hooray', 'http', 'i', 'it',
+                        'golden globes', 'goldenglobes', 'goldenglobes2020', '2020', 'golden globes 2020', 'gq', 'hip hop', 'hollywood', 'hooray', 'http', 'i', 'it',
                         'looking', 'love', 'mejor', 'most', 'motionpicture', 'movie award', 'music award', 'news',
                         'nice', 'nshowbiz', 'piece', 'pop', 'rap', 'refinery29', 'rt', 'she', 'so', 'take', 'that',
                         'the', 'the golden globe', 'the golden globes', 'this year', 'tmz', 'netflix', 'twitter', 'usweekly', 'vanity', 'gq',
@@ -370,7 +370,6 @@ def top_k_nominees(named_entity_counts, k):
 
 
 def get_nominees_and_winners(year):
-    # tweets = to_lower_case(get_tweets(year)) # lower case tweets mess up the NER
     tweets = get_tweets(year)
     if len(tweets) > MAX_LENGTH:
         tweets = get_sample(tweets, MAX_LENGTH)
@@ -390,8 +389,6 @@ def get_nominees_and_winners(year):
     print("GOT NOMINEES AND WINNERS")
     return nominees, winners
 
-
-# NOMINEES, WINNERS = get_nominees_and_winners(2013)
 
 
 def get_nominees(year):
@@ -426,6 +423,8 @@ def get_presenters(year):
 def get_red_carpet(year):
     #Additional Goal - return the top-mentioned celebrities on the Red Carpet and the kinds of superlative categories they fall under, broken down by most common compliments
     tweets = get_tweets(year)
+    tweets = get_sample(tweets, MAX_LENGTH)
+
     keywords = ['dazzling', 'dreamy', 'stunning', 'adorable', 'alluring', 'angelic', 'bewitching', 'classy', 'divine', 'transcendant', 'exquisite', 'gorgeous', 'grand', 'handsome', 'suave', 'flamboyant', 'juicy', 'nostalgic', 'cute']
     filtered_tweets = filter_tweets(tweets, [], keywords, [])
     fashion_tweets = filtered_tweets
@@ -519,6 +518,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # year = '2013' # change this to edit year
     pre_ceremony()
     main()
