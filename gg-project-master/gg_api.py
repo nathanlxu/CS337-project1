@@ -6,6 +6,7 @@ import spacy
 from collections import Counter
 from gg_utils import *
 from random import sample
+import os.path
 
 
 
@@ -308,32 +309,41 @@ def tag_tweets(year, tweets):
     return tagged_tweets
 
 
-def get_named_entities(tagged_tweets):
+def get_named_entities(tagged_tweets, year):
     # looks through list of tweets in tagged tweets dict and identifies named entities in each tweet
-    nlp = spacy.load('en_core_web_sm')
-    named_entities = {key: [] for key in tagged_tweets}
-    for award in tagged_tweets:
-        for tweet in tagged_tweets[award]:
-            doc = nlp(tweet)
-            # if award is given to a person, filter out the named entities not are not people
-            # print('AWARD NAME', award)
-            # if ('actor' or 'actress') in award:
-            #     ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
-            #     # print("PERSON!", ents_list)
-            # else:
-            #     ents_list = [ent for ent in doc.ents if ent.label_ != 'PERSON']
-                # print("NOT PERSON!", ents_list)
-            ents_list = doc.ents
-            for ent in ents_list:
-                e = ent.text.lower()
-                if e not in combined_stopwords and '#' not in e:
-                    if e not in award:
-                        names = ['actor', 'actress', 'director']
-                        if any(n in award for n in names):
-                            if len(e.split(' ')) == 2:
+    filename = str(year) + 'NE.json'
+
+    if os.path.isfile(filename):
+        with open(filename) as json_file:
+            named_entities = json.load(json_file)
+            return named_entities
+    else:
+        nlp = spacy.load('en_core_web_sm')
+        named_entities = {key: [] for key in tagged_tweets}
+        for award in tagged_tweets:
+            for tweet in tagged_tweets[award]:
+                doc = nlp(tweet)
+                # if award is given to a person, filter out the named entities not are not people
+                # print('AWARD NAME', award)
+                # if ('actor' or 'actress') in award:
+                #     ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
+                #     # print("PERSON!", ents_list)
+                # else:
+                #     ents_list = [ent for ent in doc.ents if ent.label_ != 'PERSON']
+                    # print("NOT PERSON!", ents_list)
+                ents_list = doc.ents
+                for ent in ents_list:
+                    e = ent.text.lower()
+                    if e not in combined_stopwords and '#' not in e:
+                        if e not in award:
+                            names = ['actor', 'actress', 'director']
+                            if any(n in award for n in names):
+                                if len(e.split(' ')) == 2:
+                                    named_entities[award].append(e)
+                            else:
                                 named_entities[award].append(e)
-                        else:
-                            named_entities[award].append(e)
+        with open(filename, 'w') as outfile:
+            json.dump(named_entities, outfile)
 
     return named_entities
 
@@ -366,7 +376,7 @@ def get_gg_data(year, tweets):
     nominees = {}
     winners = {}
     for award in top_nominees:
-        nominees[award] = top_nominees[award][0:] # changed
+        nominees[award] = top_nominees[award][1:] # changed
         winners[award] = top_nominees[award][0]
     nominees['cecil b. demille award'] = nominees['cecil b. demille award'][0]
 
