@@ -5,7 +5,6 @@ import nltk
 import spacy
 from collections import Counter
 from gg_utils import *
-from random import sample
 import os.path
 import json
 
@@ -115,10 +114,10 @@ stopwords = nltk.corpus.stopwords.words('english')
 additional_stopwords = ['/', '://', 'am', 'and', 'award', 'awards', 'awkward', 'before', 'best', 'best actor',
                         'best actress', 'best director', 'boo', 'but', 'can', 'com', 'congrats', 'did', 'director',
                         'drama', 'fair', 'first', 'globe', 'globes', 'globes@', 'golden', 'golden globe', 'goldenglobe',
-                        'golden globes', 'goldenglobes', 'gq', 'hip hop', 'hollywood', 'hooray', 'http', 'i', 'it',
+                        'golden globes', 'goldenglobes', 'goldenglobes2020', '2020', 'golden globes 2020', 'gq', 'hip hop', 'hollywood', 'hooray', 'http', 'i', 'it',
                         'looking', 'love', 'mejor', 'most', 'motionpicture', 'movie award', 'music award', 'news',
                         'nice', 'nshowbiz', 'piece', 'pop', 'rap', 'refinery29', 'rt', 'she', 'so', 'take', 'that',
-                        'the', 'the golden globe', 'the golden globes', 'this year', 'tmz', 'usweekly', 'vanity',
+                        'the', 'the golden globe', 'the golden globes', 'this year', 'tmz', 'netflix', 'twitter', 'usweekly', 'vanity', 'gq',
                         'vanityfair', 'watching', 'we', 'what', 'while', 'yay', 'yeah']
 combined_stopwords = stopwords + additional_stopwords
 MAX_LENGTH = 200000  # constant used to take random sampling of tweets to shorten processing time
@@ -375,8 +374,6 @@ def get_gg_data(year, relevant_tweets, presenters=False):
     return nominees, winners, presenters
 
 
-# NOMINEES, WINNERS = get_nominees_and_winners(2013)
-
 
 def get_nominees(year):
     '''Nominees is a dictionary with the hard coded award
@@ -416,6 +413,58 @@ def get_presenters(year):
 
     return get_gg_data(year, relevant_tweets, presenters=True)[2]
 
+def get_red_carpet(year):
+    #Additional Goal - return the top-mentioned celebrities on the Red Carpet and the kinds of superlative categories they fall under, broken down by most common compliments
+    tweets = get_tweets(year)
+    tweets = get_sample(tweets, MAX_LENGTH)
+
+    keywords = ['dazzling', 'dreamy', 'stunning', 'adorable', 'alluring', 'angelic', 'bewitching', 'classy', 'divine', 'transcendant', 'exquisite', 'gorgeous', 'grand', 'handsome', 'suave', 'flamboyant', 'juicy', 'nostalgic', 'cute']
+    filtered_tweets = filter_tweets(tweets, [], keywords, [])
+    fashion_tweets = filtered_tweets
+    fashion_names = Counter()
+    name_tweets = {}
+    superlatives = {}
+
+    nlp = spacy.load('en_core_web_sm')
+    for tweet in fashion_tweets:
+        keycount = 0
+        for word in tweet.split():
+            if word in keywords:
+                keycount += 1
+        doc = nlp(tweet)
+        ents_list = doc.ents
+        for ent in ents_list:
+            if ent.label_ == 'PERSON' and ent.text not in combined_stopwords and ('#' and '@') not in ent.text:
+                name = ent.text.lower()
+                if name not in combined_stopwords:
+                    if name not in fashion_names:
+                        fashion_names[name] = keycount
+                        name_tweets[name] = [tweet]
+                    else:
+                        fashion_names[name] += keycount
+                        name_tweets[name].append(tweet)
+
+    fashionistas = fashion_names.most_common(5)
+    for fashionista in fashionistas:
+        fashionista = fashionista[0]
+        compliments = Counter()
+        for tweet in name_tweets[fashionista]:
+            tweet = tweet.split()
+            for word in tweet:
+                if word in keywords:
+                    if word not in compliments:
+                        compliments[word] = 1
+                    else:
+                        compliments[word] += 1
+        superlatives[fashionista] = compliments
+
+    for fashionista in fashionistas:
+        fashionista = fashionista[0]
+        print(fashionista)
+        print(superlatives[fashionista].most_common(10))
+
+    return fashionistas
+
 
 def pre_ceremony():
     '''This function loads/fetches/processes any data your program
@@ -435,7 +484,7 @@ def main():
     while True:
         year = input("Award year: ")
         print(
-            "Options:\n1. Get Hosts\n2. Get Awards\n3. Get Nominees\n4. Get Winners\n5. Get Presenters\n6. Get All\nx. Exit Program")
+            "Options:\n1. Get Hosts\n2. Get Awards\n3. Get Nominees\n4. Get Winners\n5. Get Presenters\n6. Get All\n7. Red Carpet Superlatives\nx. Exit Program")
         entry = input("Enter option: ")
         if entry == '1':
             hosts = get_hosts(year)
@@ -443,7 +492,6 @@ def main():
         elif entry == '2':
             awards = get_awards(year)
             print(awards)
-            # other methods not currently supported, though autograder will run them anyway
         elif entry == '3':
             nominees = get_nominees(year)
             print(nominees)
@@ -455,6 +503,8 @@ def main():
             print(presenters)
         elif entry == '6':
             get_all(year)
+        elif entry == '7':
+            get_red_carpet(year) # **Additional Goal - return the top-mentioned celebrities on the red carpet and the kinds of superlative categories they fall under, broken down by most common compliments**
         elif entry == "x":
             sys.exit()
         else:
@@ -463,6 +513,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # year = '2013' # change this to edit year
     pre_ceremony()
     main()
