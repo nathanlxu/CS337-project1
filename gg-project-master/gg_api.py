@@ -71,14 +71,14 @@ filter_dict_1315 = {'best motion picture - drama':[['drama'],['motion','picture'
                    'best television series - drama':[['drama'],['television','tv','series'],['actor','actress','motion picture']],
                    'best television series - comedy or musical':[['comedy'],['television','tv','series'],['actor','actress','motion picture']],
                    'best mini-series or motion picture made for television':[['picture','television'],['motion','picture','television','limited','series'],['actor','actress']],
-                   'best performance by an actress in a mini-series or motion picture made for television':[['actress','picture','television'],['motion','picture','television'],[]],
-                   'best performance by an actor in a mini-series or motion picture made for television':[['actor','picture','television'],['motion','picture','television'],[]],
+                   'best performance by an actress in a mini-series or motion picture made for television':[['actress'],['television','tv','show','series','mini-series','mini-series'],['drama','comedy','supporting']],
+                   'best performance by an actor in a mini-series or motion picture made for television':[['actor'],['television','tv','show','series','mini-series','mini-series'],['drama','comedy','supporting']],
                    'best performance by an actress in a television series - drama':[['actress','drama'],['television','tv','series'],['motion','picture']],
                    'best performance by an actor in a television series - drama':[['actor','drama'],['television','tv','series'],['motion','picture']],
                    'best performance by an actress in a television series - comedy or musical':[['actress','comedy'],['television','tv','series'],['motion','picture']],
                    'best performance by an actor in a television series - comedy or musical':[['actor','drama'],['television','tv','series'],['motion','picture']],
-                   'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television':[['actress','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
-                   'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television':[['actor','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
+                   'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television':[['actress','supporting'],['television','tv','show','limited','series','mini-series','mini-series'],[]],
+                   'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television':[['actor','supporting'],['television','tv','show','limited','series','mini-series','mini-series'],[]],
                    'cecil b. demille award':[[],['cecil','demille'],[]]}
 
 filter_dict_1819 = {'best motion picture - drama':[['drama'],['motion','picture'],['actor','actress','television','tv','series']],
@@ -104,49 +104,22 @@ filter_dict_1819 = {'best motion picture - drama':[['drama'],['motion','picture'
                    'best performance by an actor in a television series - drama':[['actor','drama'],['television','tv','series'],['motion','picture']],
                    'best performance by an actress in a television series - musical or comedy':[['actress','comedy'],['television','tv','series'],['motion','picture']],
                    'best performance by an actor in a television series - musical or comedy':[['actor','drama'],['television','tv','series'],['motion','picture']],
-                   'best performance by an actress in a supporting role in a series, limited series or motion picture made for television':[['actress','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
-                   'best performance by an actor in a supporting role in a series, limited series or motion picture made for television':[['actor','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
-                   'cecil b. demille award':[[],['cecil','demille'],[]]}
-
-filter_dict_1315 = {'best motion picture - drama':[['drama'],['motion','picture'],['actor','actress','television','tv','series']],
-                   'best motion picture - comedy or musical':[['picture'],['musical','comedy'],['actor','actress','television','tv','series']],
-                   'best performance by an actress in a motion picture - drama':[['actress','drama'],['motion','picture'],['television','tv','series']],
-                   'best performance by an actor in a motion picture - drama':[['actor','drama'],['motion','picture'],['television','tv','series']],
-                   'best performance by an actress in a motion picture - comedy or musical':[['actress','picture'],['musical','comedy'],['television','tv','series']],
-                   'best performance by an actor in a motion picture - comedy or musical':[['actor','picture'],['musical','comedy'],['television','tv','series']],
-                   'best performance by an actress in a supporting role in a motion picture':[['actress','supporting'],['motion','picture'],['television','tv','series']],
-                   'best performance by an actor in a supporting role in a motion picture':[['actor','supporting'],['motion','picture'],['television','tv','series']],
-                   'best director - motion picture':[['director'],['motion','picture'],['actor','actress','television','tv','series']],
-                   'best screenplay - motion picture':[['screenplay'],['motion','picture'],['actor','actress','television','tv','series']],
-                   'best animated feature film':[['animated'],['motion','picture','feature','film'],['actor','actress','television','tv','series']],
-                   'best foreign language film':[['foreign'],['motion','picture','film'],['actor','actress','television','tv','series']],
-                   'best original score - motion picture':[['score'],['motion','picture','film','movie'],['actor','actress','television','tv','series']],
-                   'best original song - motion picture':[['song'],['motion','picture','film','movie'],['actor','actress','television','tv','series']],
-                   'best television series - drama':[['drama'],['television','tv','series'],['actor','actress','motion picture']],
-                   'best television series - comedy or musical':[['comedy'],['television','tv','series'],['actor','actress','motion picture']],
-                   'best television mini-series or motion picture made for television':[['picture','television'],['motion','picture','television','limited','series'],['actor','actress']],
-                   'best performance by an actress in a mini-series or a motion picture made for television':[['actress','picture','television'],['motion','picture','television'],[]],
-                   'best performance by an actor in a mini-series or a motion picture made for television':[['actor','picture','television'],['motion','picture','television'],[]],
-                   'best performance by an actress in a television series - drama':[['actress','drama'],['television','tv','series'],['motion','picture']],
-                   'best performance by an actor in a television series - drama':[['actor','drama'],['television','tv','series'],['motion','picture']],
-                   'best performance by an actress in a television series - comedy or musical':[['actress','comedy'],['television','tv','series'],['motion','picture']],
-                   'best performance by an actor in a television series - comedy or musical':[['actor','drama'],['television','tv','series'],['motion','picture']],
-                   'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television':[['actress','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
-                   'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television':[['actor','supporting','picture','television'],['motion','picture','television','limited','series'],[]],
+                   'best performance by an actress in a supporting role in a series, limited series or motion picture made for television':[['actress','supporting'],['television','tv','limited','series'],[]],
+                   'best performance by an actor in a supporting role in a series, limited series or motion picture made for television':[['actor','supporting'],['television','tv','limited','series'],[]],
                    'cecil b. demille award':[[],['cecil','demille'],[]]}
 
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
 additional_stopwords = ['/', '://', 'am', 'and', 'award', 'awards', 'awkward', 'before', 'best', 'best actor',
                         'best actress', 'best director', 'boo', 'but', 'can', 'com', 'congrats', 'did', 'director',
-                        'drama', 'fair', 'first', 'globe', 'globes', 'globes@', 'golden', 'golden globe',
+                        'drama', 'fair', 'first', 'globe', 'globes', 'globes@', 'golden', 'golden globe', 'goldenglobe',
                         'golden globes', 'goldenglobes', 'gq', 'hip hop', 'hollywood', 'hooray', 'http', 'i', 'it',
                         'looking', 'love', 'mejor', 'most', 'motionpicture', 'movie award', 'music award', 'news',
                         'nice', 'nshowbiz', 'piece', 'pop', 'rap', 'refinery29', 'rt', 'she', 'so', 'take', 'that',
                         'the', 'the golden globe', 'the golden globes', 'this year', 'tmz', 'usweekly', 'vanity',
                         'vanityfair', 'watching', 'we', 'what', 'while', 'yay', 'yeah']
 combined_stopwords = stopwords + additional_stopwords
-MAX_LENGTH = 10000  # constant used to take random sampling of tweets to shorten processing time
+MAX_LENGTH = 200000  # constant used to take random sampling of tweets to shorten processing time
 
 
 def get_all(year):
@@ -324,6 +297,7 @@ def tag_tweets(year, tweets):
     # print("TAGGED TWEETS INITIALIZED WITH LENGTH", len(tagged_tweets))
     # filter tweets for each award category given strict keywords, loose keywords, and filter words
     for award in tagged_tweets:
+        # print("TWEETS OF LEN", len(tweets))
         tagged_tweets[award] = filter_tweets(tweets, filter_dict[award][0], filter_dict[award][1], filter_dict[award][2])
 
     # print("TAGGED TWEETS KEYS:", len(tagged_tweets), tagged_tweets.keys())
@@ -339,18 +313,23 @@ def get_named_entities(tagged_tweets):
             doc = nlp(tweet)
             # if award is given to a person, filter out the named entities not are not people
             # print('AWARD NAME', award)
-            if ('actor' or 'actress') in award:
-                ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
-                # print("PERSON!", ents_list)
-            else:
-                ents_list = [ent for ent in doc.ents if ent.label_ != 'PERSON']
+            # if ('actor' or 'actress') in award:
+            #     ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
+            #     # print("PERSON!", ents_list)
+            # else:
+            #     ents_list = [ent for ent in doc.ents if ent.label_ != 'PERSON']
                 # print("NOT PERSON!", ents_list)
-            # ents_list = doc.ents
+            ents_list = doc.ents
             for ent in ents_list:
                 e = ent.text.lower()
                 if e not in combined_stopwords and '#' not in e:
                     if e not in award:
-                        named_entities[award].append(e)
+                        names = ['actor', 'actress', 'director']
+                        if any(n in award for n in names):
+                            if len(e.split(' ')) == 2:
+                                named_entities[award].append(e)
+                        else:
+                            named_entities[award].append(e)
 
     return named_entities
 
@@ -377,6 +356,8 @@ def top_k_nominees(named_entity_counts, k):
 def get_nominees_and_winners(year):
     # tweets = to_lower_case(get_tweets(year)) # lower case tweets mess up the NER
     tweets = get_tweets(year)
+    if len(tweets) > MAX_LENGTH:
+        tweets = get_sample(tweets, MAX_LENGTH)
     relevant_tweets = get_relevant_tweets(tweets)
     tagged_tweets = tag_tweets(year, relevant_tweets)
     named_entities = get_named_entities(tagged_tweets)
@@ -386,56 +367,15 @@ def get_nominees_and_winners(year):
     nominees = {}
     winners = {}
     for award in top_nominees:
-        nominees[award] = top_nominees[award][1:]
+        nominees[award] = top_nominees[award][0:] # changed
         winners[award] = top_nominees[award][0]
+    nominees['cecil b. demille award'] = nominees['cecil b. demille award'][0]
 
     print("GOT NOMINEES AND WINNERS")
     return nominees, winners
 
 
 # NOMINEES, WINNERS = get_nominees_and_winners(2013)
-
-
-def get_nominee_counts(year, relevant_tweets):
-    print("IN GET_NOMINEE_COUNTS, TWEETS DICT HAS LENGTH", len(relevant_tweets))
-    # 2. identify named entities in each tag tweet - looks through dict of list of tweets and identifies
-    #    the named entities in each tweet
-    nlp = spacy.load('en_core_web_sm')
-    named_entities = {key: [] for key in relevant_tweets}
-    for award in relevant_tweets:
-        for tweet in relevant_tweets[award]:
-            doc = nlp(tweet)
-            # if award is given to a person, filter out the named entities not are not people
-            # print('AWARD NAME', award)
-            # if 'actor' or 'actress' in award:
-            #     ents_list = [ent for ent in doc.ents if ent.label_ == 'PERSON']
-            #     #print("PERSON!", ents_list)
-            # else:
-            #     ents_list = [ent for ent in doc.ents if ent.label_ != 'PERSON']
-            #     #print("NOT PERSON!", ents_list)
-            ents_list = doc.ents
-            for ent in ents_list:
-                if ent.text not in combined_stopwords and '#' not in ent.text:
-                    named_entities[award].append(ent.text.lower())  # make lowercase
-    # print(len(named_entities), named_entities)
-
-    # 3. count up each unique named entity in each category
-    nominee_counts = {}
-    for award, named_entities_list in named_entities.items():
-        z = zip(Counter(named_entities_list).keys(), Counter(named_entities_list).values())
-        sorted_named_entities = dict(sorted(z, key=lambda x: x[1], reverse=True))
-        nominee_counts[award] = sorted_named_entities
-    # return nominee_counts   ### REMINDER: COMMENTED OUT FOR TESTING
-
-    # 4. get the named entities associated with the top 5 counts (5 nominees are selected per category in ggs)
-    # highest count is the winner, next 4 remain the nominees
-
-    # nominee_counts = get_nominee_counts(year)
-    nominees = {key: [] for key in nominee_counts}
-    for award in nominee_counts:
-        nominees[award] = sorted(nominee_counts[award], key=nominee_counts[award].get, reverse=True)[:5]
-
-    return nominees
 
 
 def get_nominees(year):

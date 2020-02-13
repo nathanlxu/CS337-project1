@@ -35,7 +35,7 @@ def filter_tweets(tweets, strict_keywords, loose_keywords, filterwords):
 
 
 def get_sample(tweets, max_len):
-    print("CREATING SAMPLE")
+    print("DATA EXCEEDED MAX LENGTH OF", max_len, " - CREATING SAMPLE...")
     sub_samples = 10
     sample = []
     step_size = int(len(tweets) / sub_samples)
