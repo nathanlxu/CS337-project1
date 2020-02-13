@@ -6,8 +6,8 @@ import spacy
 from collections import Counter
 from gg_utils import *
 from random import sample
-from collections import OrderedDict
-from difflib import SequenceMatcher
+
+
 
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
                         'best performance by an actress in a motion picture - drama',
@@ -152,13 +152,13 @@ def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
     tweets = get_tweets(year)
-    keyword = 'host'
+    keyword = ['hosted', 'hosting']
     filterword = 'should'
     # filtered_tweets = filter_tweets(tweets, [keyword], [keyword], [filterword])
-    filtered_tweets = [tweet for tweet in tweets if 'host' in tweet.lower() and not 'should' in tweet.lower()]
+    filtered_tweets = [tweet for tweet in tweets if 'hosted' in tweet.lower() or 'hosting' in tweet.lower() and not 'should' in tweet.lower()]
     print("CALLED GET TWEETS IN GET HOSTS")
     host_tweets = filtered_tweets
-    host_names = {}
+    host_names = Counter()
 
     nlp = spacy.load('en_core_web_sm')
     for tweet in host_tweets:
@@ -175,13 +175,18 @@ def get_hosts(year):
     print("NAMES LOADED")
 
     hosts = [max(host_names, key=host_names.get)]
+    compare_name = hosts[0]
+
+    while ' ' not in compare_name:
+      del host_names[compare_name]
+      compare_name = host_names.most_common(1)[0][0]
+      hosts = [compare_name]
+
     if int(year) < 2018:
-        compare_name = hosts[0]
-        del host_names[compare_name]
-        next_name = max(host_names, key=host_names.get)
-        while (len(host_names) > 1) and compare_name in next_name or next_name in compare_name:
-            compare_name = next_name
-            next_name = max(host_names, key=host_names.get)
+        next_name = host_names.most_common(1)[0][0]
+        while compare_name in next_name or next_name in compare_name or ' ' not in next_name:
+            del host_names[next_name]
+            next_name = host_names.most_common(1)[0][0]
         hosts.append(next_name)
 
     print("GET HOSTS RETURNED:")
