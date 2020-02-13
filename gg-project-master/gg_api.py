@@ -125,17 +125,22 @@ MAX_LENGTH = 200000  # constant used to take random sampling of tweets to shorte
 
 def get_all(year):
     winner_dict = get_winner(year)
-    awards = OFFICIAL_AWARDS_1315
+    if year < int(2016):
+        awards = OFFICIAL_AWARDS_1315
+    else:
+        awards = OFFICIAL_AWARDS_1819
     nominee_dict = get_nominees(year)
     presenter_dict = get_presenters(year)
 
     for award in awards:
         print(award + ': ')
         print("winner: " + winner_dict[award])
+        nominee_dict[award] = nominee_dict[award][1:]
         for nom in nominee_dict[award]:
             print("nominee: " + nom)
-        print("presenters: " + presenter_dict[award] + "\n")
-
+        for present in presenter_dict[award]:
+            print("presenter: " + present)
+        print('\n')
 
 def get_names(text):
     person_list = []
