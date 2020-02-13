@@ -281,10 +281,9 @@ def get_awards(year):
     return best_awards
 
 
-def get_relevant_tweets(tweets):
+def get_relevant_tweets(tweets, keywords):
     # filter tweets based on loose constraints
-    loose_keywords = ['best', 'cecil', 'demille', 'nominate', 'nominee']
-    relevant_tweets = filter_tweets(tweets, [], loose_keywords, [])
+    relevant_tweets = filter_tweets(tweets, [], keywords, [])
     return relevant_tweets
 
 
@@ -358,13 +357,8 @@ def top_k_nominees(named_entity_counts, k):
     return top_nominees
 
 
-def get_nominees_and_winners(year):
-    # tweets = to_lower_case(get_tweets(year)) # lower case tweets mess up the NER
-    tweets = get_tweets(year)
-    if len(tweets) > MAX_LENGTH:
-        tweets = get_sample(tweets, MAX_LENGTH)
-    relevant_tweets = get_relevant_tweets(tweets)
-    tagged_tweets = tag_tweets(year, relevant_tweets)
+def get_gg_data(year, tweets):
+    tagged_tweets = tag_tweets(year, tweets)
     named_entities = get_named_entities(tagged_tweets)
     named_entities_count = count_named_entities(named_entities)
     top_nominees = top_k_nominees(named_entities_count, 5)
@@ -376,7 +370,7 @@ def get_nominees_and_winners(year):
         winners[award] = top_nominees[award][0]
     nominees['cecil b. demille award'] = nominees['cecil b. demille award'][0]
 
-    print("GOT NOMINEES AND WINNERS")
+    print("GOT GG DATA")
     return nominees, winners
 
 
@@ -387,30 +381,39 @@ def get_nominees(year):
     '''Nominees is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change
     the name of this function or what it returns.'''
-    return get_nominees_and_winners(year)[0]
+    loose_keywords = ['best', 'cecil', 'demille', 'nominate', 'nominee']
+    tweets = get_tweets(year)
+    if len(tweets) > MAX_LENGTH:
+        tweets = get_sample(tweets, MAX_LENGTH)
+    relevant_tweets = get_relevant_tweets(tweets, loose_keywords)
+
+    return get_gg_data(year, relevant_tweets)[0]
 
 
 def get_winner(year):
     '''Winners is a dictionary with the hard coded award
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
-    return get_nominees_and_winners(year)[1]
+    loose_keywords = ['best', 'cecil', 'demille', 'nominate', 'nominee']
+    tweets = get_tweets(year)
+    if len(tweets) > MAX_LENGTH:
+        tweets = get_sample(tweets, MAX_LENGTH)
+    relevant_tweets = get_relevant_tweets(tweets, loose_keywords)
+
+    return get_gg_data(year, relevant_tweets)[1]
 
 
 def get_presenters(year):
     '''Presenters is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change the
     name of this function or what it returns.'''
-    presenter_tweets = tag_tweets(year, presenters=True)
-    nominees = get_nominee_counts(year, presenter_tweets)
-    presenters = {}
-    for award in nominees:
-        if nominees[award]:
-            presenters[award] = nominees[award][0]  # first element is the nominee with highest count
-        else:
-            presenters[award] = ''
-    print("WINNERS:", presenters)
-    return presenters
+    loose_keywords = ['best', 'cecil', 'demille', 'nominate', 'nominee', 'present']
+    tweets = get_tweets(year)
+    if len(tweets) > MAX_LENGTH:
+        tweets = get_sample(tweets, MAX_LENGTH)
+    relevant_tweets = get_relevant_tweets(tweets, loose_keywords)
+
+    return get_gg_data(year, relevant_tweets)[1]
 
 
 def pre_ceremony():
