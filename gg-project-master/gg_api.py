@@ -125,7 +125,7 @@ MAX_LENGTH = 200000  # constant used to take random sampling of tweets to shorte
 
 def get_all(year):
     winner_dict = get_winner(year)
-    if year < int(2016):
+    if int(year) < 2016:
         awards = OFFICIAL_AWARDS_1315
     else:
         awards = OFFICIAL_AWARDS_1819
